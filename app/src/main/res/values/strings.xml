@@ -4,4 +4,26 @@
     <string name="login_password_label">Password</string>
     <string name="login_button_label">Login</string>
     <string name="modules_activity_name">Modules</string>
+    <string name="title_activity_logged_in">CultureChat</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+
+    <string name="menu_modules">Modules</string>
+    <string name="menu_sessions">Sessions</string>
+    <string name="menu_students">Students</string>
+    <string name="menu_mentors">Mentors</string>
+    <string name="menu_logout">Logout</string>
+    <string name="menu_account">Account</string>
+    <string name="module_form_full_name_label">Full module name</string>
+    <string name="module_form_short_name_label">Short module name</string>
+    <string name="module_form_desc_label">Module description</string>
+
+    <string name="student_form_name_label">Student name</string>
+    <string name="student_form_email_label">Student email</string>
+    <string name="student_form_mentor_label">Assigned mentor</string>
+
+    <string name="home_second">Home Second</string>
 </resources>

@@ -3,6 +3,7 @@ package edu.gatech.edtech.culturechatapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -21,6 +22,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences("login_pref", 0);
+
+        String userRole = pref.getString("role", null);
+        String userToken = pref.getString("token", null);
+        String userName = pref.getString("name", null);
+
+        if (userRole != null && userToken != null) {
+            ApplicationSetup.userRole = userRole;
+            ApplicationSetup.userToken = userToken;
+            ApplicationSetup.userName = userName;
+
+            Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            finish();
+            startActivity(intent);
+        }
+
         setContentView(R.layout.activity_main);
     }
 
@@ -30,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         final String userEmail = loginEmailInputTextView.getText().toString();
         final String password = loginPasswordInputTextView.getText().toString();
 
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("email", userEmail);
         params.put("password", password);
         JSONObject jsonObj = new JSONObject(params);
@@ -41,25 +60,24 @@ public class MainActivity extends AppCompatActivity {
             .setLayout(R.id.login_layout)
             .setEndpoint("/login")
             .setJSONData(jsonObj)
-            .setListener(new Response.Listener<JSONObject>() {
+            .setListenerJSONObject(new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     try {
                         // save token and role and switch to the appropriate interface
+                        SharedPreferences pref = getApplicationContext().getSharedPreferences("login_pref", 0);
+                        SharedPreferences.Editor editor = pref.edit();
+                        editor.putString("role", response.getString("role"));
+                        editor.putString("token", response.getString("token"));
+                        editor.putString("name", response.getString("name"));
+                        editor.apply();
                         ApplicationSetup.userRole = response.getString("role");
                         ApplicationSetup.userToken = response.getString("token");
-                        switch (ApplicationSetup.userRole) {
-                            case "admin":
-                                System.out.println("THis is admin section!");
-                                /*Intent intent = new Intent(MainActivity.this, ActivityModules.class);
-                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                startActivity(intent);*/
-                                break;
-                            case "mentor":
-                                break;
-                            case "student":
-                                break;
-                        }
+                        ApplicationSetup.userName = response.getString("name");
+                        Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        finish();
+                        startActivity(intent);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
