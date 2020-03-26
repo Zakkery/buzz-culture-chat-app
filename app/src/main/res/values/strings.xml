@@ -20,10 +20,16 @@
     <string name="module_form_full_name_label">Full module name</string>
     <string name="module_form_short_name_label">Short module name</string>
     <string name="module_form_desc_label">Module description</string>
+    <string name="reset_password_label">Reset password</string>
+    <string name="session_add_form_topic_label">Session topic</string>
+    <string name="session_add_form_topic_other_label">Specify the topic</string>
+    <string name="session_add_form_mentor_label">Who would you like to meet with?</string>
+    <string name="session_add_form_start_datetime_label">When</string>
 
     <string name="student_form_name_label">Student name</string>
     <string name="student_form_email_label">Student email</string>
     <string name="student_form_mentor_label">Assigned mentor</string>
 
     <string name="home_second">Home Second</string>
+    <string name="session_add_form_date_time_set_imagebutton_content_desc">Pick a date and time</string>
 </resources>

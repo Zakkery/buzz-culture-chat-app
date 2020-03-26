@@ -87,6 +87,14 @@
     </fragment>
 
     <fragment
+        android:id="@+id/nav_account"
+        android:name="edu.gatech.edtech.culturechatapp.ui.account.AccountFormFragment"
+        android:label="@string/menu_account"
+        tools:layout="@layout/fragment_account" >
+    </fragment>
+
+
+    <fragment
         android:id="@+id/nav_mentors"
         android:name="edu.gatech.edtech.culturechatapp.ui.mentor.MentorFragment"
         android:label="@string/menu_mentors"
@@ -94,6 +102,34 @@
         <action
             android:id="@+id/action_nav_mentors_to_nav_student_form"
             app:destination="@id/nav_student_form" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_sessions"
+        android:name="edu.gatech.edtech.culturechatapp.ui.session.SessionFragment"
+        android:label="@string/menu_sessions"
+        tools:layout="@layout/fragment_sessions" >
+        <action
+            android:id="@+id/sessions_to_session_add_form"
+            app:destination="@id/nav_session_add_form" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_session_add_form"
+        android:name="edu.gatech.edtech.culturechatapp.ui.session.SessionAddFormFragment"
+        android:label="Session Add Form">
+        <action
+            android:id="@+id/action_nav_session_add_form_to_nav_sessions"
+            app:destination="@id/nav_sessions" />
+        <argument
+            android:name="possibleTopics"
+            app:argType="java.util.ArrayList" />
+        <argument
+            android:name="mentorName"
+            app:argType="string" />
+        <argument
+            android:name="mentorId"
+            app:argType="string" />
     </fragment>
 
 </navigation>

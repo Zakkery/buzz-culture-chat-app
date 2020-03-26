@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,11 +29,13 @@ public class MainActivity extends AppCompatActivity {
         String userRole = pref.getString("role", null);
         String userToken = pref.getString("token", null);
         String userName = pref.getString("name", null);
+        String userEmail = pref.getString("email", null);
 
         if (userRole != null && userToken != null) {
             ApplicationSetup.userRole = userRole;
             ApplicationSetup.userToken = userToken;
             ApplicationSetup.userName = userName;
+            ApplicationSetup.userEmail = userEmail;
 
             Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -70,10 +73,12 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString("role", response.getString("role"));
                         editor.putString("token", response.getString("token"));
                         editor.putString("name", response.getString("name"));
+                        editor.putString("email", userEmail);
                         editor.apply();
                         ApplicationSetup.userRole = response.getString("role");
                         ApplicationSetup.userToken = response.getString("token");
                         ApplicationSetup.userName = response.getString("name");
+                        ApplicationSetup.userEmail = userEmail;
                         Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                         finish();
@@ -84,5 +89,40 @@ public class MainActivity extends AppCompatActivity {
                 }
             })
             .executeRequest();
+    }
+
+    public void sendResetPasswordEmailLoggedIn(final View view) {
+        String userEmail = null;
+        TextView userEmailTextView = this.findViewById(R.id.login_email_input);
+
+        userEmail = userEmailTextView.getText().toString();
+
+        if (userEmail.equals("")) {
+            userEmailTextView.setError("Enter Email");
+        }
+
+        Map<String, String> params = new HashMap<>();
+        params.put("email", userEmail);
+        JSONObject jsonObj = new JSONObject(params);
+
+        new ServerRequestHandler()
+                .setMethod(Request.Method.POST)
+                .setActivity(this)
+                .setLayout(R.id.drawer_layout)
+                .setEndpoint("/reset-password")
+                .setJSONData(jsonObj)
+                .setListenerJSONObject(new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            String responseMessage = response.getString("message");
+                            Snackbar.make(view, responseMessage, Snackbar.LENGTH_LONG)
+                                    .show();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                })
+                .executeRequest();
     }
 }

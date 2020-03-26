@@ -2,6 +2,8 @@ package edu.gatech.edtech.culturechatapp;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 
@@ -80,12 +82,20 @@ public class ServerRequestHandler {
                     if (!response.getBoolean("success")) {
                         // get message text
                         String messageText = response.getString("message");
-
-                        // Error has occured - display it in the snackbar
-                        Snackbar errorMessageSnackbar = Snackbar.make(
-                                appContext.findViewById(layoutID),
-                                messageText, Snackbar.LENGTH_LONG
-                        );
+                        Snackbar errorMessageSnackbar = null;
+                        if (messageText.equals("Unauthorized")) {
+                            logoutUser();
+                            errorMessageSnackbar = Snackbar.make(
+                                    appContext.findViewById(layoutID),
+                                    "Please login again", Snackbar.LENGTH_LONG
+                            );
+                        } else {
+                            // Error has occured - display it in the snackbar
+                            errorMessageSnackbar = Snackbar.make(
+                                    appContext.findViewById(layoutID),
+                                    messageText, Snackbar.LENGTH_LONG
+                            );
+                        }
                         InputMethodManager imm = (InputMethodManager) appContext.getSystemService(Activity.INPUT_METHOD_SERVICE);
                         View view = appContext.getCurrentFocus();
 
@@ -107,6 +117,26 @@ public class ServerRequestHandler {
         return this;
     }
 
+    public void logoutUser() {
+        //on the logout - switch to the login page and delete all info from app
+        SharedPreferences pref = this.context.getSharedPreferences("login_pref", 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.remove("role");
+        editor.remove("token");
+        editor.remove("name");
+        editor.remove("email");
+        editor.apply();
+        ApplicationSetup.userRole = null;
+        ApplicationSetup.userToken = null;
+        ApplicationSetup.userEmail = null;
+        ApplicationSetup.userName = null;
+
+        Intent intent = new Intent(this.context, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        this.context.finish();
+        this.context.startActivity(intent);
+    }
+
     public ServerRequestHandler setListenerJSONArray(final Response.Listener<JSONArray> listener) {
         final int layoutID = this.layout;
         final Activity appContext = this.context;
@@ -117,12 +147,20 @@ public class ServerRequestHandler {
                     if (!response.getBoolean("success")) {
                         // get message text
                         String messageText = response.getString("message");
-
-                        // Error has occured - display it in the snackbar
-                        Snackbar errorMessageSnackbar = Snackbar.make(
-                                appContext.findViewById(layoutID),
-                                messageText, Snackbar.LENGTH_LONG
-                        );
+                        Snackbar errorMessageSnackbar = null;
+                        if (messageText.equals("Unauthorized")) {
+                            logoutUser();
+                            errorMessageSnackbar = Snackbar.make(
+                                    appContext.findViewById(layoutID),
+                                    "Please login again", Snackbar.LENGTH_LONG
+                            );
+                        } else {
+                            // Error has occured - display it in the snackbar
+                            errorMessageSnackbar = Snackbar.make(
+                                    appContext.findViewById(layoutID),
+                                    messageText, Snackbar.LENGTH_LONG
+                            );
+                        }
                         InputMethodManager imm = (InputMethodManager) appContext.getSystemService(Activity.INPUT_METHOD_SERVICE);
                         View view = appContext.getCurrentFocus();
 

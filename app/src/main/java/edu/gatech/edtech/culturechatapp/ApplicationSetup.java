@@ -2,10 +2,14 @@ package edu.gatech.edtech.culturechatapp;
 
 import android.view.Menu;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class ApplicationSetup {
     public static String userRole = null;
     public static String userToken = null;
     public static String userName = null;
+    public static String userEmail = null;
 
     public static void setupMenuItems(int[] visibleMenuItems, Menu menuNav) {
         int[] allMenuItems = new int[] {
@@ -22,6 +26,16 @@ public class ApplicationSetup {
             menuNav.findItem(item).setEnabled(true);
             menuNav.findItem(item).setVisible(true);
         }
+    }
 
+    public static Date dateFromMongoString(String dateString) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        Date date = null;
+        try {
+            date = formatter.parse(dateString);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return date;
     }
 }
