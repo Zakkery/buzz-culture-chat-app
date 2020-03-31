@@ -81,11 +81,13 @@ public class LoggedInActivity extends AppCompatActivity {
         editor.remove("token");
         editor.remove("name");
         editor.remove("email");
+        editor.remove("user_id");
         editor.apply();
         ApplicationSetup.userRole = null;
         ApplicationSetup.userToken = null;
         ApplicationSetup.userEmail = null;
         ApplicationSetup.userName = null;
+        ApplicationSetup.userId = null;
 
         Intent intent = new Intent(LoggedInActivity.this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -9,14 +9,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,6 +34,7 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
         public TextView textView;
         public ConstraintLayout rowLayout;
         public ImageButton rowDeleteButton;
+        public ImageView confirmImage;
         public ImageView pendingImage;
         public SessionViewHolder(View itemView) {
             super(itemView);
@@ -42,6 +42,7 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
             rowLayout = itemView.findViewById(R.id.session_row_layout);
             rowDeleteButton = itemView.findViewById(R.id.session_row_delete);
             pendingImage = itemView.findViewById(R.id.session_row_pending);
+            confirmImage = itemView.findViewById(R.id.session_row_confirm);
         }
     }
 
@@ -103,16 +104,18 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
         String sessionDisplayText = startDateText + " with " + sessionObject.mentorName + " (" + sessionObject.topic + ")";
         holder.textView.setText(sessionDisplayText);
 
-        if (!sessionObject.approved) {
-            holder.pendingImage.setVisibility(View.VISIBLE);
+        holder.rowDeleteButton.setVisibility(View.GONE);
+        holder.pendingImage.setVisibility(View.GONE);
+        holder.confirmImage.setVisibility(View.GONE);
+
+        if (!sessionObject.approved || sessionObject.ends_at != null) {
             holder.rowDeleteButton.setVisibility(View.VISIBLE);
-        } else {
-            holder.pendingImage.setVisibility(View.GONE);
-            holder.rowDeleteButton.setVisibility(View.GONE);
         }
-        if (sessionObject.ends_at != null) {
-            holder.pendingImage.setVisibility(View.GONE);
-            holder.rowDeleteButton.setVisibility(View.VISIBLE);
+        if (!sessionObject.approved && ApplicationSetup.userRole.equals("student")) {
+            holder.pendingImage.setVisibility(View.VISIBLE);
+        }
+        if (!sessionObject.approved && ApplicationSetup.userRole.equals("mentor")) {
+            holder.confirmImage.setVisibility(View.VISIBLE);
         }
 
         // Set callback on click with the id
@@ -120,10 +123,18 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
             // if session is old - show chat history
             // if session is upcoming - and not within next 1 minute - tell them to wait
             if (sessionObject.ends_at != null) {
-                //show history
+                // show history
+                SessionFragmentDirections.SessionToChat action = SessionFragmentDirections.sessionToChat(sessionId);
+                action.setTopic(sessionObject.topic);
+                Navigation.findNavController(view).navigate(action);
             } else {
                 if (sessionObject.starts_at.getTime() - (new Date()).getTime() < 3 * 60 * 1000) {
                     // about to start
+                    // this session is not closed
+                    SessionFragmentDirections.SessionToChat action = SessionFragmentDirections.sessionToChat(sessionId);
+                    action.setTopic(sessionObject.topic);
+                    action.setClosed(false);
+                    Navigation.findNavController(view).navigate(action);
                 } else {
                     // too far away from start
                     Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), "Session is more than 3 minutes away from start", Snackbar.LENGTH_LONG)
@@ -132,59 +143,73 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
             }
         });
 
-        // Add delete button listener
-        holder.rowDeleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                new ServerRequestHandler()
-                        .setMethod(Request.Method.DELETE)
-                        .setActivity(fragmentAppActivity)
-                        .setLayout(R.id.drawer_layout)
-                        .setEndpoint("/student/session/" + sessionId)
-                        .setAuthHeader(ApplicationSetup.userToken)
-                        .setListenerJSONObject(new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    String successMessage = response.getString("message");
-                                    Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
-                                            .show();
-                                    // find item that was deleted
-                                    int listPosition = 0;
-                                    for (; listPosition < listDataset.size(); listPosition++) {
-                                        if (listDataset.get(listPosition).sessionId.equals(sessionId))
-                                            break;
-                                    }
+        holder.confirmImage.setOnClickListener(view-> {
+            // on click send approval and hide approve button
+            new ServerRequestHandler()
+                .setMethod(Request.Method.PUT)
+                .setActivity(fragmentAppActivity)
+                .setLayout(R.id.drawer_layout)
+                .setEndpoint("/student/session/confirm/" + sessionId)
+                .setAuthHeader(ApplicationSetup.userToken)
+                .setListenerJSONObject(response -> {
+                    try{
+                        Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), "Session has been confirmed", Snackbar.LENGTH_LONG)
+                                .show();
+                        holder.confirmImage.setVisibility(View.GONE);
+                        holder.rowDeleteButton.setVisibility(View.GONE);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                })
+                    .executeRequest();
 
-                                    listDataset.remove(listPosition);
-                                    notifyItemRemoved(listPosition);
-                                    // check if there is no more old sessions
-                                    boolean oldSessionsPresent = false;
-                                    for (SessionAdapter.SessionListInfo sess : listDataset) {
-                                        if (sess.ends_at != null) {
-                                            oldSessionsPresent = true;
-                                            break;
-                                        }
-                                    }
-
-                                    if (!oldSessionsPresent) {
-                                        listPosition = 0;
-                                        for (; listPosition < listDataset.size(); listPosition++) {
-                                            if (listDataset.get(listPosition).sessionId.equals("previous_sessions"))
-                                                break;
-                                        }
-                                        listDataset.remove(listPosition);
-                                        notifyItemRemoved(listPosition);
-                                    }
-                                    notifyDataSetChanged();
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        })
-                        .executeRequest();
-            }
         });
+
+        // Add delete button listener
+        holder.rowDeleteButton.setOnClickListener(view -> new ServerRequestHandler()
+                .setMethod(Request.Method.DELETE)
+                .setActivity(fragmentAppActivity)
+                .setLayout(R.id.drawer_layout)
+                .setEndpoint("/student/session/" + sessionId)
+                .setAuthHeader(ApplicationSetup.userToken)
+                .setListenerJSONObject(response -> {
+                    try {
+                        String successMessage = response.getString("message");
+                        Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
+                                .show();
+                        // find item that was deleted
+                        int listPosition = 0;
+                        for (; listPosition < listDataset.size(); listPosition++) {
+                            if (listDataset.get(listPosition).sessionId.equals(sessionId))
+                                break;
+                        }
+
+                        listDataset.remove(listPosition);
+                        notifyItemRemoved(listPosition);
+                        // check if there is no more old sessions
+                        boolean oldSessionsPresent = false;
+                        for (SessionListInfo sess : listDataset) {
+                            if (sess.ends_at != null) {
+                                oldSessionsPresent = true;
+                                break;
+                            }
+                        }
+
+                        if (!oldSessionsPresent) {
+                            listPosition = 0;
+                            for (; listPosition < listDataset.size(); listPosition++) {
+                                if (listDataset.get(listPosition).sessionId.equals("previous_sessions"))
+                                    break;
+                            }
+                            listDataset.remove(listPosition);
+                            notifyItemRemoved(listPosition);
+                        }
+                        notifyDataSetChanged();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                })
+                .executeRequest());
     }
 
     @Override

@@ -7,32 +7,26 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 
 import edu.gatech.edtech.culturechatapp.ApplicationSetup;
 import edu.gatech.edtech.culturechatapp.R;
 import edu.gatech.edtech.culturechatapp.ServerRequestHandler;
-import edu.gatech.edtech.culturechatapp.ui.mentor.MentorAdapter;
-import edu.gatech.edtech.culturechatapp.ui.module.ModuleAdapter;
-import edu.gatech.edtech.culturechatapp.ui.student.StudentAdapter;
-import edu.gatech.edtech.culturechatapp.ui.student.StudentFragmentDirections;
+import edu.gatech.edtech.culturechatapp.ui.module.ModuleAvailableAdapter;
 
 public class SessionFragment extends Fragment {
 
@@ -40,9 +34,12 @@ public class SessionFragment extends Fragment {
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
 
+    private View root;
+    private Activity appActivity;
+
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        final View root = inflater.inflate(R.layout.fragment_sessions, container, false);
+        this.root = inflater.inflate(R.layout.fragment_sessions, container, false);
 
         FloatingActionButton fabAdd = getActivity().findViewById(R.id.fabAdd);
         // we are in session fragment - check if we are a student and enable add button
@@ -58,20 +55,20 @@ public class SessionFragment extends Fragment {
                             .setEndpoint("/modules")
                             .setAuthHeader(ApplicationSetup.userToken)
                             .setListenerJSONArray(response -> {
-                                ArrayList<ModuleAdapter.ModuleListInfo> availableModules = new ArrayList<>();
+                                ArrayList<ModuleAvailableAdapter.ModuleListInfo> availableModules = new ArrayList<>();
                                 try {
                                     if (response.length() > 0) {
                                         for (int i = 0; i < response.length(); i++) {
                                             JSONObject moduleData = response.getJSONObject(i);
                                             String moduleId = moduleData.getString("_id");
                                             String topic = moduleData.getString("full_name");
-                                            availableModules.add(new ModuleAdapter.ModuleListInfo(moduleId, topic));
+                                            availableModules.add(new ModuleAvailableAdapter.ModuleListInfo(moduleId, topic));
                                         }
                                     }
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                                availableModules.add(new ModuleAdapter.ModuleListInfo("other", "Other"));
+                                availableModules.add(new ModuleAvailableAdapter.ModuleListInfo("other", "Other"));
                                 // now that we have all of those we need to get student's mentor
                                 new ServerRequestHandler()
                                         .setMethod(Request.Method.GET)
@@ -108,19 +105,7 @@ public class SessionFragment extends Fragment {
         FloatingActionButton fabConfirm = getActivity().findViewById(R.id.fabConfirm);
         fabConfirm.hide();
 
-        recyclerView = (RecyclerView) root.findViewById(R.id.recycler_view_sessions);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        recyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        layoutManager = new LinearLayoutManager(getActivity());
-        recyclerView.setLayoutManager(layoutManager);
-
-        // specify an adapter (see also next example)
-        //String[] myDataset = new String[] {"Test", "totally"};
-        final Activity appActivity = getActivity();
+        this.appActivity = getActivity();
 
         // request all the student information
         new ServerRequestHandler()
@@ -130,8 +115,8 @@ public class SessionFragment extends Fragment {
                 .setEndpoint("/student/sessions")
                 .setAuthHeader(ApplicationSetup.userToken)
                 .setListenerJSONArray(response -> {
-                    List<SessionAdapter.SessionListInfo> sessionDatasetPrevious = new ArrayList<>();
-                    List<SessionAdapter.SessionListInfo> sessionDatasetUpcoming = new ArrayList<>();
+                    List<SessionAdapter.SessionListInfo> previousSessions = new ArrayList<>();
+                    List<SessionAdapter.SessionListInfo> upcomingSessions = new ArrayList<>();
                     for (int i = 0; i < response.length(); i++) {
                         try {
                             JSONObject sessionObject = response.getJSONObject(i);
@@ -157,28 +142,56 @@ public class SessionFragment extends Fragment {
                             String topic = sessionObject.getString("topic");
                             boolean approved = sessionObject.getBoolean("approved");
                             if (endDate == null) {
-                                sessionDatasetUpcoming.add(new SessionAdapter.SessionListInfo(objectId, studentName, mentorName, topic, startDate, endDate, approved));
+                                upcomingSessions.add(new SessionAdapter.SessionListInfo(objectId, studentName, mentorName, topic, startDate, endDate, approved));
                             } else {
-                                sessionDatasetPrevious.add(new SessionAdapter.SessionListInfo(objectId, studentName, mentorName, topic, startDate, endDate, approved));
+                                previousSessions.add(new SessionAdapter.SessionListInfo(objectId, studentName, mentorName, topic, startDate, endDate, approved));
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                     // sort based on start date
-                    sessionDatasetUpcoming.sort((p1, p2) -> p1.starts_at.compareTo(p2.starts_at));
-                    sessionDatasetPrevious.sort((p1, p2) -> p1.starts_at.compareTo(p2.starts_at));
-
-                    if (sessionDatasetPrevious.size() > 0) {
-                        sessionDatasetUpcoming.add(new SessionAdapter.SessionListInfo("previous_sessions", null, null, "Previous Sessions", null, null, true));
-                        sessionDatasetUpcoming.addAll(sessionDatasetPrevious);
-                    }
-
-                    mAdapter = new SessionAdapter(sessionDatasetUpcoming, appActivity);
-                    recyclerView.setAdapter(mAdapter);
+                    upcomingSessions.sort((p1, p2) -> p1.starts_at.compareTo(p2.starts_at));
+                    previousSessions.sort((p1, p2) -> p1.starts_at.compareTo(p2.starts_at));
+                    this.populatePreviousSessions(previousSessions);
+                    this.populateUpcomingSessions(upcomingSessions);
                 })
                 .executeRequest();
 
         return root;
+    }
+
+    private void populatePreviousSessions(List<SessionAdapter.SessionListInfo> previousSessions) {
+        ConstraintLayout constraintPreviousSessionsLayout = getActivity().findViewById(R.id.session_previous_layout);
+        if (previousSessions.size() < 1) {
+            constraintPreviousSessionsLayout.setVisibility(View.GONE);
+        } else {
+            constraintPreviousSessionsLayout.setVisibility(View.VISIBLE);
+            RecyclerView availableModulesRecyclerView = this.root.findViewById(R.id.recycler_previous_sessions);
+            availableModulesRecyclerView.setHasFixedSize(true);
+
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this.appActivity);
+            availableModulesRecyclerView.setLayoutManager(layoutManager);
+
+            RecyclerView.Adapter mAdapter = new SessionAdapter(previousSessions, this.appActivity);
+            availableModulesRecyclerView.setAdapter(mAdapter);
+        }
+    }
+
+    private void populateUpcomingSessions(List<SessionAdapter.SessionListInfo> upcomingSessions) {
+        ConstraintLayout constraintUpcomingSessionsLayout = getActivity().findViewById(R.id.sessions_upcoming_layout);
+        if (upcomingSessions.size() < 1) {
+            constraintUpcomingSessionsLayout.setVisibility(View.GONE);
+        } else {
+            constraintUpcomingSessionsLayout.setVisibility(View.VISIBLE);
+            RecyclerView availableModulesRecyclerView = this.root.findViewById(R.id.recycler_upcoming_sessions);
+            availableModulesRecyclerView.setHasFixedSize(true);
+
+            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this.appActivity);
+            availableModulesRecyclerView.setLayoutManager(layoutManager);
+
+            RecyclerView.Adapter mAdapter = new SessionAdapter(upcomingSessions, this.appActivity);
+            availableModulesRecyclerView.setAdapter(mAdapter);
+        }
     }
 }

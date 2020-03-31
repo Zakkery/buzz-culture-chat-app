@@ -75,43 +75,40 @@ public class ServerRequestHandler {
     public ServerRequestHandler setListenerJSONObject(final Response.Listener<JSONObject> listener) {
         final int layoutID = this.layout;
         final Activity appContext = this.context;
-        this.listenerWrap =  new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    if (!response.getBoolean("success")) {
-                        // get message text
-                        String messageText = response.getString("message");
-                        Snackbar errorMessageSnackbar = null;
-                        if (messageText.equals("Unauthorized")) {
-                            logoutUser();
-                            errorMessageSnackbar = Snackbar.make(
-                                    appContext.findViewById(layoutID),
-                                    "Please login again", Snackbar.LENGTH_LONG
-                            );
-                        } else {
-                            // Error has occured - display it in the snackbar
-                            errorMessageSnackbar = Snackbar.make(
-                                    appContext.findViewById(layoutID),
-                                    messageText, Snackbar.LENGTH_LONG
-                            );
-                        }
-                        InputMethodManager imm = (InputMethodManager) appContext.getSystemService(Activity.INPUT_METHOD_SERVICE);
-                        View view = appContext.getCurrentFocus();
-
-                        if (view == null) {
-                            view = new View(appContext);
-                        }
-
-                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                        errorMessageSnackbar.show();
+        this.listenerWrap = response -> {
+            try {
+                if (!response.getBoolean("success")) {
+                    // get message text
+                    String messageText = response.getString("message");
+                    Snackbar errorMessageSnackbar = null;
+                    if (messageText.equals("Unauthorized")) {
+                        logoutUser();
+                        errorMessageSnackbar = Snackbar.make(
+                                appContext.findViewById(layoutID),
+                                "Please login again", Snackbar.LENGTH_LONG
+                        );
                     } else {
-                        JSONObject data = response.getJSONObject("data");
-                        listener.onResponse(data);
+                        // Error has occured - display it in the snackbar
+                        errorMessageSnackbar = Snackbar.make(
+                                appContext.findViewById(layoutID),
+                                messageText, Snackbar.LENGTH_LONG
+                        );
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    InputMethodManager imm = (InputMethodManager) appContext.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                    View view = appContext.getCurrentFocus();
+
+                    if (view == null) {
+                        view = new View(appContext);
+                    }
+
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    errorMessageSnackbar.show();
+                } else {
+                    JSONObject data = response.getJSONObject("data");
+                    listener.onResponse(data);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         };
         return this;
@@ -140,43 +137,40 @@ public class ServerRequestHandler {
     public ServerRequestHandler setListenerJSONArray(final Response.Listener<JSONArray> listener) {
         final int layoutID = this.layout;
         final Activity appContext = this.context;
-        this.listenerWrap =  new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                try {
-                    if (!response.getBoolean("success")) {
-                        // get message text
-                        String messageText = response.getString("message");
-                        Snackbar errorMessageSnackbar = null;
-                        if (messageText.equals("Unauthorized")) {
-                            logoutUser();
-                            errorMessageSnackbar = Snackbar.make(
-                                    appContext.findViewById(layoutID),
-                                    "Please login again", Snackbar.LENGTH_LONG
-                            );
-                        } else {
-                            // Error has occured - display it in the snackbar
-                            errorMessageSnackbar = Snackbar.make(
-                                    appContext.findViewById(layoutID),
-                                    messageText, Snackbar.LENGTH_LONG
-                            );
-                        }
-                        InputMethodManager imm = (InputMethodManager) appContext.getSystemService(Activity.INPUT_METHOD_SERVICE);
-                        View view = appContext.getCurrentFocus();
-
-                        if (view == null) {
-                            view = new View(appContext);
-                        }
-
-                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                        errorMessageSnackbar.show();
+        this.listenerWrap = response -> {
+            try {
+                if (!response.getBoolean("success")) {
+                    // get message text
+                    String messageText = response.getString("message");
+                    Snackbar errorMessageSnackbar = null;
+                    if (messageText.equals("Unauthorized")) {
+                        logoutUser();
+                        errorMessageSnackbar = Snackbar.make(
+                                appContext.findViewById(layoutID),
+                                "Please login again", Snackbar.LENGTH_LONG
+                        );
                     } else {
-                        JSONArray data = response.getJSONArray("data");
-                        listener.onResponse(data);
+                        // Error has occured - display it in the snackbar
+                        errorMessageSnackbar = Snackbar.make(
+                                appContext.findViewById(layoutID),
+                                messageText, Snackbar.LENGTH_LONG
+                        );
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    InputMethodManager imm = (InputMethodManager) appContext.getSystemService(Activity.INPUT_METHOD_SERVICE);
+                    View view = appContext.getCurrentFocus();
+
+                    if (view == null) {
+                        view = new View(appContext);
+                    }
+
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                    errorMessageSnackbar.show();
+                } else {
+                    JSONArray data = response.getJSONArray("data");
+                    listener.onResponse(data);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         };
         return this;

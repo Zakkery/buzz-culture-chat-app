@@ -32,4 +32,6 @@
 
     <string name="home_second">Home Second</string>
     <string name="session_add_form_date_time_set_imagebutton_content_desc">Pick a date and time</string>
+    <string name="session_chat_enter_message_hint">Write a message</string>
+    <string name="finish_session_button_text">Finish session</string>
 </resources>

@@ -10,13 +10,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.TimePicker;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,7 +21,6 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
 
 import com.android.volley.Request;
-import com.android.volley.Response;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -40,14 +36,12 @@ import java.util.Map;
 import edu.gatech.edtech.culturechatapp.ApplicationSetup;
 import edu.gatech.edtech.culturechatapp.R;
 import edu.gatech.edtech.culturechatapp.ServerRequestHandler;
-import edu.gatech.edtech.culturechatapp.ui.mentor.MentorAdapter;
-import edu.gatech.edtech.culturechatapp.ui.module.ModuleAdapter;
-import edu.gatech.edtech.culturechatapp.ui.student.StudentFormFragmentArgs;
+import edu.gatech.edtech.culturechatapp.ui.module.ModuleAvailableAdapter;
 
 public class SessionAddFormFragment extends Fragment {
     String mentorId = "";
     String mentorName = "";
-    ArrayList<ModuleAdapter.ModuleListInfo> availableModules = null;
+    ArrayList<ModuleAvailableAdapter.ModuleListInfo> availableModules = null;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -83,7 +77,7 @@ public class SessionAddFormFragment extends Fragment {
         List<String> spinnerOptions = new ArrayList<>();
 
         for (int i = 0; i < this.availableModules.size(); i++) {
-            ModuleAdapter.ModuleListInfo moduleInfo = this.availableModules.get(i);
+            ModuleAvailableAdapter.ModuleListInfo moduleInfo = this.availableModules.get(i);
             spinnerOptions.add(moduleInfo.moduleDisplayText);
         }
 
@@ -161,7 +155,7 @@ public class SessionAddFormFragment extends Fragment {
                             if (response.has("message")) {
                                 responseMessage = response.getString("message");
                             }
-                            Navigation.findNavController(root).navigate(R.id.action_nav_session_add_form_to_nav_sessions);
+                            Navigation.findNavController(root).navigate(R.id.session_chat_to_list);
                             Snackbar.make(view, responseMessage, Snackbar.LENGTH_LONG)
                                     .show();
                         } catch (JSONException e) {

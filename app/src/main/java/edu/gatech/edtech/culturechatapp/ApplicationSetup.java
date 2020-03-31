@@ -10,6 +10,7 @@ public class ApplicationSetup {
     public static String userToken = null;
     public static String userName = null;
     public static String userEmail = null;
+    public static String userId = null;
 
     public static void setupMenuItems(int[] visibleMenuItems, Menu menuNav) {
         int[] allMenuItems = new int[] {
@@ -37,5 +38,10 @@ public class ApplicationSetup {
             e.printStackTrace();
         }
         return date;
+    }
+
+    public static String stringFromDateChat(Date date) {
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+        return formatter.format(date);
     }
 }

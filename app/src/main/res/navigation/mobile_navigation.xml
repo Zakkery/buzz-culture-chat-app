@@ -6,6 +6,26 @@
     app:startDestination="@+id/nav_modules">
 
     <fragment
+        android:id="@+id/nav_session_chat_form"
+        android:name="edu.gatech.edtech.culturechatapp.ui.session.SessionChatFragment"
+        android:label="Chat"
+        tools:layout="@layout/session_chat_form">
+        <action
+            android:id="@+id/session_chat_to_list"
+            app:destination="@id/nav_sessions" />
+        <argument
+            android:name="sessionId"
+            app:argType="string" />
+        <argument
+            android:name="closed"
+            app:argType="boolean"
+            android:defaultValue="true" />
+        <argument
+            android:name="topic"
+            app:argType="string"
+            android:defaultValue="Chat" />
+    </fragment>
+    <fragment
         android:id="@+id/nav_student_form"
         android:name="edu.gatech.edtech.culturechatapp.ui.student.StudentFormFragment"
         android:label="Student Form">
@@ -112,6 +132,9 @@
         <action
             android:id="@+id/sessions_to_session_add_form"
             app:destination="@id/nav_session_add_form" />
+        <action
+            android:id="@+id/session_to_chat"
+            app:destination="@id/nav_session_chat_form" />
     </fragment>
 
     <fragment
@@ -119,7 +142,7 @@
         android:name="edu.gatech.edtech.culturechatapp.ui.session.SessionAddFormFragment"
         android:label="Session Add Form">
         <action
-            android:id="@+id/action_nav_session_add_form_to_nav_sessions"
+            android:id="@+id/session_chat_to_list"
             app:destination="@id/nav_sessions" />
         <argument
             android:name="possibleTopics"

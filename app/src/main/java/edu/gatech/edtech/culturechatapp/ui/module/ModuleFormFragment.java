@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.Request;
@@ -40,8 +41,12 @@ public class ModuleFormFragment extends Fragment {
             this.description = ModuleFormFragmentArgs.fromBundle(getArguments()).getDescription();
             this.moduleId = ModuleFormFragmentArgs.fromBundle(getArguments()).getId();
         }
+        if (moduleId.equals("new_module")) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle("New Module");
+        } else {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(this.fullTitle);
+        }
 
-        System.out.println(this.moduleId);
 
         final TextView shortTitleTextView = root.findViewById(R.id.module_form_shortname_text);
         final TextView fullTitleTextView = root.findViewById(R.id.module_form_fullname_text);
@@ -102,6 +107,7 @@ public class ModuleFormFragment extends Fragment {
                             public void onResponse(JSONObject response) {
                                 Snackbar.make(view, "Module has been updated", Snackbar.LENGTH_LONG)
                                         .show();
+                                ((AppCompatActivity) getActivity()).getSupportActionBar().setTitle(longTitle);
                             }
                         });
                     //new object

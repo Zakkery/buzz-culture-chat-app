@@ -30,12 +30,14 @@ public class MainActivity extends AppCompatActivity {
         String userToken = pref.getString("token", null);
         String userName = pref.getString("name", null);
         String userEmail = pref.getString("email", null);
+        String userId = pref.getString("user_id", null);
 
         if (userRole != null && userToken != null) {
             ApplicationSetup.userRole = userRole;
             ApplicationSetup.userToken = userToken;
             ApplicationSetup.userName = userName;
             ApplicationSetup.userEmail = userEmail;
+            ApplicationSetup.userId = userId;
 
             Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -73,11 +75,13 @@ public class MainActivity extends AppCompatActivity {
                         editor.putString("role", response.getString("role"));
                         editor.putString("token", response.getString("token"));
                         editor.putString("name", response.getString("name"));
+                        editor.putString("user_id", response.getString("id"));
                         editor.putString("email", userEmail);
                         editor.apply();
                         ApplicationSetup.userRole = response.getString("role");
                         ApplicationSetup.userToken = response.getString("token");
                         ApplicationSetup.userName = response.getString("name");
+                        ApplicationSetup.userId = response.getString("id");
                         ApplicationSetup.userEmail = userEmail;
                         Intent intent = new Intent(MainActivity.this, LoggedInActivity.class);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
