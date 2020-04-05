@@ -138,7 +138,7 @@ public class SessionChatFragment extends Fragment {
 
                         root.findViewById(R.id.session_chat_scroll_view).postDelayed(() -> {
                             //replace this line to scroll up or down
-                            ((ScrollView) root.findViewById(R.id.session_chat_scroll_view)).fullScroll(ScrollView.FOCUS_DOWN);
+                            recyclerView.smoothScrollToPosition(messageList.size() - 1);
                         }, 100L);
                     })
                     .executeRequest();
@@ -218,7 +218,7 @@ public class SessionChatFragment extends Fragment {
                         mAdapter.notifyDataSetChanged();
                         root.findViewById(R.id.session_chat_scroll_view).postDelayed(() -> {
                             //replace this line to scroll up or down
-                            ((ScrollView) root.findViewById(R.id.session_chat_scroll_view)).fullScroll(ScrollView.FOCUS_DOWN);
+                            recyclerView.smoothScrollToPosition(messageList.size() - 1);
                         }, 100L);
                     } catch (Exception e) {
                         e.printStackTrace();
