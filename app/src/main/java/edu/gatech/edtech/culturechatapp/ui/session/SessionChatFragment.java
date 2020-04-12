@@ -216,10 +216,12 @@ public class SessionChatFragment extends Fragment {
                             messageList.add(new ChatAdapter.MessageListInfo(messageFrom, senderName, messageText, messageSentAt));
                         }
                         mAdapter.notifyDataSetChanged();
-                        root.findViewById(R.id.session_chat_scroll_view).postDelayed(() -> {
-                            //replace this line to scroll up or down
-                            recyclerView.smoothScrollToPosition(messageList.size() - 1);
-                        }, 100L);
+                        if (messageList.size() > 0) {
+                            root.findViewById(R.id.session_chat_scroll_view).postDelayed(() -> {
+                                //replace this line to scroll up or down
+                                recyclerView.smoothScrollToPosition(messageList.size() - 1);
+                            }, 100L);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

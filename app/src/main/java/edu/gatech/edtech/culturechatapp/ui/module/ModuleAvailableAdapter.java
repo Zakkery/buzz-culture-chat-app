@@ -101,31 +101,38 @@ public class ModuleAvailableAdapter extends RecyclerView.Adapter<ModuleAvailable
         if (ApplicationSetup.userRole.equals("admin")) {
             // Add delete button listener
             holder.rowDeleteButton.setVisibility(View.VISIBLE);
-            holder.rowDeleteButton.setOnClickListener(view -> new ServerRequestHandler()
-                    .setMethod(Request.Method.DELETE)
-                    .setActivity(fragmentAppActivity)
-                    .setLayout(R.id.drawer_layout)
-                    .setEndpoint("/admin/module/" + moduleId)
-                    .setAuthHeader(ApplicationSetup.userToken)
-                    .setListenerJSONObject(response -> {
-                        try {
-                            String successMessage = response.getString("message");
-                            Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
-                                    .show();
-                            // find item that was deleted
-                            int listPoisition = 0;
-                            for (; listPoisition < listDataset.size(); listPoisition++) {
-                                if (listDataset.get(listPoisition).moduleId.equals(moduleId))
-                                    break;
+
+            holder.rowDeleteButton.setOnClickListener(view -> {
+                ApplicationSetup.createConfirmationDialog(view.getContext(), "Delete module",
+                    "Are you sure you want to delete this module? This action is irreversible",
+                    (dialogInterface, i) -> {
+                        new ServerRequestHandler()
+                        .setMethod(Request.Method.DELETE)
+                        .setActivity(fragmentAppActivity)
+                        .setLayout(R.id.drawer_layout)
+                        .setEndpoint("/admin/module/" + moduleId)
+                        .setAuthHeader(ApplicationSetup.userToken)
+                        .setListenerJSONObject(response -> {
+                            try {
+                                String successMessage = response.getString("message");
+                                Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
+                                        .show();
+                                // find item that was deleted
+                                int listPoisition = 0;
+                                for (; listPoisition < listDataset.size(); listPoisition++) {
+                                    if (listDataset.get(listPoisition).moduleId.equals(moduleId))
+                                        break;
+                                }
+                                listDataset.remove(listPoisition);
+                                notifyItemRemoved(listPoisition);
+                                notifyDataSetChanged();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
                             }
-                            listDataset.remove(listPoisition);
-                            notifyItemRemoved(listPoisition);
-                            notifyDataSetChanged();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    })
-                    .executeRequest());
+                        })
+                        .executeRequest();
+                    }).show();
+            });
         }
     }
 

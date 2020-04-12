@@ -102,74 +102,66 @@ public class MentorAdapter extends RecyclerView.Adapter<MentorAdapter.MentorView
         }
 
         // Set callback on click with the id
-        holder.rowLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
+        holder.rowLayout.setOnClickListener(view -> {
 
-                // GET student information
-                new ServerRequestHandler()
-                    .setMethod(Request.Method.GET)
+            // GET student information
+            new ServerRequestHandler()
+                .setMethod(Request.Method.GET)
+                .setActivity(fragmentAppActivity)
+                .setLayout(R.id.drawer_layout)
+                .setEndpoint("/admin/student/" + studentId)
+                .setAuthHeader(ApplicationSetup.userToken)
+                .setListenerJSONObject(response -> {
+                    try {
+                        final ArrayList<MentorListInfo> possibleMentorList = new ArrayList<>();
+                        possibleMentorList.add(new MentorListInfo("no_mentor", "NO MENTOR ASSIGNED"));
+
+                        String studentName1 = response.getString("name");
+                        String studentEmail1 = response.getString("email");
+
+                        MentorFragmentDirections.ActionNavMentorsToNavStudentForm action = MentorFragmentDirections.actionNavMentorsToNavStudentForm(studentId, "no_mentor", possibleMentorList);
+                        action.setEmail(studentEmail1);
+                        action.setName(studentName1);
+                        action.setRecordType("mentor");
+                        Navigation.findNavController(view).navigate(action);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                })
+                .executeRequest();
+        });
+
+        // Add delete button listener
+        holder.rowDeleteButton.setOnClickListener(view -> {
+            ApplicationSetup.createConfirmationDialog(view.getContext(), "Delete mentor",
+                "Are you sure you want to delete this mentor? This action is irreversible, and would result in removal of all their sessions as well",
+                (dialogInterface, i) -> {
+                    new ServerRequestHandler()
+                    .setMethod(Request.Method.DELETE)
                     .setActivity(fragmentAppActivity)
                     .setLayout(R.id.drawer_layout)
                     .setEndpoint("/admin/student/" + studentId)
                     .setAuthHeader(ApplicationSetup.userToken)
-                    .setListenerJSONObject(new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            try {
-                                final ArrayList<MentorListInfo> possibleMentorList = new ArrayList<>();
-                                possibleMentorList.add(new MentorAdapter.MentorListInfo("no_mentor", "NO MENTOR ASSIGNED"));
-
-                                String studentName = response.getString("name");
-                                String studentEmail = response.getString("email");
-
-                                MentorFragmentDirections.ActionNavMentorsToNavStudentForm action = MentorFragmentDirections.actionNavMentorsToNavStudentForm(studentId, "no_mentor", possibleMentorList);
-                                action.setEmail(studentEmail);
-                                action.setName(studentName);
-                                action.setRecordType("mentor");
-                                Navigation.findNavController(view).navigate(action);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                    .setListenerJSONObject(response -> {
+                        try {
+                            String successMessage = response.getString("message");
+                            Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
+                                    .show();
+                            // find item that was deleted
+                            int listPosition = 0;
+                            for (; listPosition < listDataset.size(); listPosition++) {
+                                if (listDataset.get(listPosition).mentorId.equals(studentId))
+                                    break;
                             }
+                            listDataset.remove(listPosition);
+                            notifyItemRemoved(listPosition);
+                            notifyDataSetChanged();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
                         }
                     })
                     .executeRequest();
-            }
-        });
-
-        // Add delete button listener
-        holder.rowDeleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                new ServerRequestHandler()
-                        .setMethod(Request.Method.DELETE)
-                        .setActivity(fragmentAppActivity)
-                        .setLayout(R.id.drawer_layout)
-                        .setEndpoint("/admin/student/" + studentId)
-                        .setAuthHeader(ApplicationSetup.userToken)
-                        .setListenerJSONObject(new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    String successMessage = response.getString("message");
-                                    Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
-                                            .show();
-                                    // find item that was deleted
-                                    int listPosition = 0;
-                                    for (; listPosition < listDataset.size(); listPosition++) {
-                                        if (listDataset.get(listPosition).mentorId.equals(studentId))
-                                            break;
-                                    }
-                                    listDataset.remove(listPosition);
-                                    notifyItemRemoved(listPosition);
-                                    notifyDataSetChanged();
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        })
-                        .executeRequest();
-            }
+                }).show();
         });
     }
     @Override

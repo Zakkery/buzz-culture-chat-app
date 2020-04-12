@@ -159,38 +159,36 @@ public class StudentAdapter extends RecyclerView.Adapter<StudentAdapter.StudentV
         });
 
         // Add delete button listener
-        holder.rowDeleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(final View view) {
-                new ServerRequestHandler()
-                        .setMethod(Request.Method.DELETE)
-                        .setActivity(fragmentAppActivity)
-                        .setLayout(R.id.drawer_layout)
-                        .setEndpoint("/admin/student/" + studentId)
-                        .setAuthHeader(ApplicationSetup.userToken)
-                        .setListenerJSONObject(new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    String successMessage = response.getString("message");
-                                    Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
-                                            .show();
-                                    // find item that was deleted
-                                    int listPosition = 0;
-                                    for (; listPosition < listDataset.size(); listPosition++) {
-                                        if (listDataset.get(listPosition).studentId.equals(studentId))
-                                            break;
+        holder.rowDeleteButton.setOnClickListener(view -> {
+            ApplicationSetup.createConfirmationDialog(view.getContext(), "Delete student",
+                    "Are you sure you want to delete this student? This action is irreversible, and would result in removal of all their sessions as well",
+                    (dialogInterface, i) -> {
+                        new ServerRequestHandler()
+                                .setMethod(Request.Method.DELETE)
+                                .setActivity(fragmentAppActivity)
+                                .setLayout(R.id.drawer_layout)
+                                .setEndpoint("/admin/student/" + studentId)
+                                .setAuthHeader(ApplicationSetup.userToken)
+                                .setListenerJSONObject(response -> {
+                                    try {
+                                        String successMessage = response.getString("message");
+                                        Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
+                                                .show();
+                                        // find item that was deleted
+                                        int listPosition = 0;
+                                        for (; listPosition < listDataset.size(); listPosition++) {
+                                            if (listDataset.get(listPosition).studentId.equals(studentId))
+                                                break;
+                                        }
+                                        listDataset.remove(listPosition);
+                                        notifyItemRemoved(listPosition);
+                                        notifyDataSetChanged();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
                                     }
-                                    listDataset.remove(listPosition);
-                                    notifyItemRemoved(listPosition);
-                                    notifyDataSetChanged();
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        })
-                        .executeRequest();
-            }
+                                })
+                                .executeRequest();
+                    }).show();
         });
     }
 

@@ -1,6 +1,7 @@
 package edu.gatech.edtech.culturechatapp.ui.session;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -128,7 +129,7 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
                 action.setTopic(sessionObject.topic);
                 Navigation.findNavController(view).navigate(action);
             } else {
-                if (sessionObject.starts_at.getTime() - (new Date()).getTime() < 3 * 60 * 1000) {
+                if (sessionObject.starts_at.getTime() - (new Date()).getTime() < 5 * 60 * 1000) {
                     // about to start
                     // this session is not closed
                     SessionFragmentDirections.SessionToChat action = SessionFragmentDirections.sessionToChat(sessionId);
@@ -137,7 +138,7 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
                     Navigation.findNavController(view).navigate(action);
                 } else {
                     // too far away from start
-                    Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), "Session is more than 3 minutes away from start", Snackbar.LENGTH_LONG)
+                    Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), "Session is more than 5 minutes away from start", Snackbar.LENGTH_LONG)
                             .show();
                 }
             }
@@ -166,50 +167,56 @@ public class SessionAdapter extends  RecyclerView.Adapter<SessionAdapter.Session
         });
 
         // Add delete button listener
-        holder.rowDeleteButton.setOnClickListener(view -> new ServerRequestHandler()
-                .setMethod(Request.Method.DELETE)
-                .setActivity(fragmentAppActivity)
-                .setLayout(R.id.drawer_layout)
-                .setEndpoint("/student/session/" + sessionId)
-                .setAuthHeader(ApplicationSetup.userToken)
-                .setListenerJSONObject(response -> {
-                    try {
-                        String successMessage = response.getString("message");
-                        Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
-                                .show();
-                        // find item that was deleted
-                        int listPosition = 0;
-                        for (; listPosition < listDataset.size(); listPosition++) {
-                            if (listDataset.get(listPosition).sessionId.equals(sessionId))
-                                break;
-                        }
+        holder.rowDeleteButton.setOnClickListener(view -> {
+            ApplicationSetup.createConfirmationDialog(view.getContext(), "Delete session",
+                    "Are you sure you want to delete a session? This action is irreversible",
+                    (dialogInterface, i) -> {
+                        new ServerRequestHandler()
+                                .setMethod(Request.Method.DELETE)
+                                .setActivity(fragmentAppActivity)
+                                .setLayout(R.id.drawer_layout)
+                                .setEndpoint("/student/session/" + sessionId)
+                                .setAuthHeader(ApplicationSetup.userToken)
+                                .setListenerJSONObject(response -> {
+                                    try {
+                                        String successMessage = response.getString("message");
+                                        Snackbar.make(fragmentAppActivity.findViewById(R.id.drawer_layout), successMessage, Snackbar.LENGTH_LONG)
+                                                .show();
+                                        // find item that was deleted
+                                        int listPosition = 0;
+                                        for (; listPosition < listDataset.size(); listPosition++) {
+                                            if (listDataset.get(listPosition).sessionId.equals(sessionId))
+                                                break;
+                                        }
 
-                        listDataset.remove(listPosition);
-                        notifyItemRemoved(listPosition);
-                        // check if there is no more old sessions
-                        boolean oldSessionsPresent = false;
-                        for (SessionListInfo sess : listDataset) {
-                            if (sess.ends_at != null) {
-                                oldSessionsPresent = true;
-                                break;
-                            }
-                        }
+                                        listDataset.remove(listPosition);
+                                        notifyItemRemoved(listPosition);
+                                        // check if there is no more old sessions
+                                        boolean oldSessionsPresent = false;
+                                        for (SessionListInfo sess : listDataset) {
+                                            if (sess.ends_at != null) {
+                                                oldSessionsPresent = true;
+                                                break;
+                                            }
+                                        }
 
-                        if (!oldSessionsPresent) {
-                            listPosition = 0;
-                            for (; listPosition < listDataset.size(); listPosition++) {
-                                if (listDataset.get(listPosition).sessionId.equals("previous_sessions"))
-                                    break;
-                            }
-                            listDataset.remove(listPosition);
-                            notifyItemRemoved(listPosition);
-                        }
-                        notifyDataSetChanged();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                })
-                .executeRequest());
+                                        if (!oldSessionsPresent) {
+                                            listPosition = 0;
+                                            for (; listPosition < listDataset.size(); listPosition++) {
+                                                if (listDataset.get(listPosition).sessionId.equals("previous_sessions"))
+                                                    break;
+                                            }
+                                            listDataset.remove(listPosition);
+                                            notifyItemRemoved(listPosition);
+                                        }
+                                        notifyDataSetChanged();
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                })
+                                .executeRequest();
+                    }).show();
+        });
     }
 
     @Override
