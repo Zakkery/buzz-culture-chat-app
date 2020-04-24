@@ -84,7 +84,7 @@ public class ModuleAvailableAdapter extends RecyclerView.Adapter<ModuleAvailable
                 .setEndpoint("/module/" + moduleId)
                 .setAuthHeader(ApplicationSetup.userToken)
                 .setListenerJSONObject(response -> {
-                    ModulesFragmentDirections.NavModuleToForm action = ModulesFragmentDirections.navModuleToForm(moduleId);
+                    ModulesFragmentDirections.NavModuleToView action = ModulesFragmentDirections.navModuleToView(moduleId);
                     try {
                         action.setDescription(response.getString("description"));
                         action.setLongTitle(response.getString("full_name"));
