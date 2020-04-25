@@ -25,9 +25,12 @@ import edu.gatech.edtech.culturechatapp.ApplicationSetup;
 import edu.gatech.edtech.culturechatapp.R;
 import edu.gatech.edtech.culturechatapp.ServerRequestHandler;
 
+// Adapted certain parts of the code from https://blog.sendbird.com/android-chat-tutorial-building-a-messaging-ui/
 public class ChatAdapter extends RecyclerView.Adapter {
+    /* BEGIN CODE FROM https://blog.sendbird.com/android-chat-tutorial-building-a-messaging-ui */
     private static final int VIEW_MESSAGE_SENT = 1;
     private static final int VIEW_MESSAGE_RECEIVED = 2;
+    /* END CODE FROM https://blog.sendbird.com/android-chat-tutorial-building-a-messaging-ui */
 
     private List<ChatAdapter.MessageListInfo> messageList;
     private Activity appActivity;
@@ -47,16 +50,19 @@ public class ChatAdapter extends RecyclerView.Adapter {
         }
     }
 
+    /* BEGIN CODE FROM https://blog.sendbird.com/android-chat-tutorial-building-a-messaging-ui */
     public ChatAdapter(List< ChatAdapter.MessageListInfo > messageList, Activity appActivity) {
         this.messageList = messageList;
         this.appActivity = appActivity;
     }
+    /* END CODE FROM https://blog.sendbird.com/android-chat-tutorial-building-a-messaging-ui */
 
     public void setMessageList(List<ChatAdapter.MessageListInfo> messageList) {
         this.messageList = messageList;
         this.notifyDataSetChanged();
     }
 
+    /* BEGIN CODE FROM https://blog.sendbird.com/android-chat-tutorial-building-a-messaging-ui */
     @Override
     public int getItemViewType(int position) {
         MessageListInfo actualMessage = messageList.get(position);
@@ -83,7 +89,6 @@ public class ChatAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         MessageListInfo actualMessage = messageList.get(position);
-
         // inflate appropriate message holder - if sender_id is same as user's then inflate sentMessageViewHolder
         // otherwise, ReceivedMessageViewHolder
         if (actualMessage.sentByUserId.equals(ApplicationSetup.userId)) {
@@ -131,4 +136,5 @@ public class ChatAdapter extends RecyclerView.Adapter {
             fromView.setText(message.senderName);
         }
     }
+    /* END CODE FROM https://blog.sendbird.com/android-chat-tutorial-building-a-messaging-ui */
 }

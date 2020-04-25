@@ -84,15 +84,28 @@ public class ModuleAvailableAdapter extends RecyclerView.Adapter<ModuleAvailable
                 .setEndpoint("/module/" + moduleId)
                 .setAuthHeader(ApplicationSetup.userToken)
                 .setListenerJSONObject(response -> {
-                    ModulesFragmentDirections.NavModuleToView action = ModulesFragmentDirections.navModuleToView(moduleId);
-                    try {
-                        action.setDescription(response.getString("description"));
-                        action.setLongTitle(response.getString("full_name"));
-                        action.setShortTitle(response.getString("short_name"));
-                        action.setId(moduleId);
-                        Navigation.findNavController(view).navigate(action);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+                    if (ApplicationSetup.userRole.contentEquals("admin")) {
+                        ModulesFragmentDirections.NavModuleToForm action = ModulesFragmentDirections.navModuleToForm(moduleId);
+                        try {
+                            action.setDescription(response.getString("description"));
+                            action.setLongTitle(response.getString("full_name"));
+                            action.setShortTitle(response.getString("short_name"));
+                            action.setId(moduleId);
+                            Navigation.findNavController(view).navigate(action);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        ModulesFragmentDirections.NavModuleToView action = ModulesFragmentDirections.navModuleToView(moduleId);
+                        try {
+                            action.setDescription(response.getString("description"));
+                            action.setLongTitle(response.getString("full_name"));
+                            action.setShortTitle(response.getString("short_name"));
+                            action.setId(moduleId);
+                            Navigation.findNavController(view).navigate(action);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 })
                 .executeRequest();
